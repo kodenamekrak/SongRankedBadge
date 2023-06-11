@@ -1,0 +1,52 @@
+{
+  "sharedDir": "shared",
+  "dependenciesDir": "extern",
+  "info": {
+    "name": "SongRankedBadge",
+    "id": "songrankedbadge",
+    "version": "0.1.0",
+    "url": null,
+    "additionalData": {
+      "overrideSoName": "libsongrankedbadge.so",
+      "cmake": true
+    }
+  },
+  "dependencies": [
+    {
+      "id": "beatsaber-hook",
+      "versionRange": "^3.14.0",
+      "additionalData": {}
+    },
+    {
+      "id": "modloader",
+      "versionRange": "=1.2.3",
+      "additionalData": {}
+    },
+    {
+      "id": "codegen",
+      "versionRange": "^0.33.0",
+      "additionalData": {}
+    },
+    {
+      "id": "custom-types",
+      "versionRange": "^0.15.24",
+      "additionalData": {}
+    },
+    {
+      "id": "config-utils",
+      "versionRange": "^1.0.2",
+      "additionalData": {}
+    },
+    {
+      "id": "questui",
+      "versionRange": "^0.17.12",
+      "additionalData": {}
+    },
+    {
+      "id": "song-details",
+      "versionRange": "^0.3.1",
+      "additionalData": {}
+    }
+  ],
+  "workspace": null
+}
