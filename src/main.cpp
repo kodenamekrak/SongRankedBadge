@@ -29,41 +29,29 @@ enum class RankedStatus {
     None
 };
 
-UnityEngine::Color getColor(RankedStatus status)
-{
-    switch(status)
-    {
-        case RankedStatus::Beatleader:
-            return UnityEngine::Color(0.54509803921f, 0.38823529411f, 0.73333333333f, 1);
-        case RankedStatus::Scoresaber:
-            return UnityEngine::Color(0.9294117647f, 0.8f, 0.03137254901f, 1);
-        default:
-            break;
-    }
-    return UnityEngine::Color(0.87450980392f, 0.0862745098f, 0.43529411764f, 1);
-}
+UnityEngine::Color unranked(0.87450980392f, 0.0862745098f, 0.43529411764f, 1),
+ranked = unranked,
+beatleaderRanked(0.54509803921f, 0.38823529411f, 0.73333333333f, 1),
+scoresaberRanked(0.9294117647f, 0.8f, 0.03137254901f, 1);
 
-StringW getText(RankedStatus status)
-{
-    switch(status)
-    {
-        case RankedStatus::Ranked:
-            return "Ranked";
-        case RankedStatus::Beatleader:
-            return "BL Ranked";
-        case RankedStatus::Scoresaber:
-            return "SS Ranked";
-        default:
-            break;
-    }
-    // default cell text
-    return "new";
-}
+std::map<RankedStatus, UnityEngine::Color> colors = {
+    {RankedStatus::None, unranked},
+    {RankedStatus::Ranked, ranked},
+    {RankedStatus::Beatleader, beatleaderRanked},
+    {RankedStatus::Scoresaber, scoresaberRanked}
+};
+
+std::map<RankedStatus, std::string> texts = {
+    {RankedStatus::None, "new"}, // default cell text
+    {RankedStatus::Ranked, "Ranked"},
+    {RankedStatus::Beatleader, "BL Ranked"},
+    {RankedStatus::Scoresaber, "SS Ranked"}
+};
 
 RankedStatus GetRankedStatus(std::string hash)
 {
     const SongDetailsCache::Song* song;
-    if(!songDetails->songs.FindByHash(static_cast<std::string>(hash), song))
+    if(!songDetails->songs.FindByHash(hash, song))
         return RankedStatus::None;
 
     using Ranked = SongDetailsCache::RankedStates;
@@ -105,14 +93,14 @@ MAKE_HOOK_MATCH(LevelListTableCell_SetDataFromLevelAsync, &GlobalNamespace::Leve
 
     if(isRanked && getModConfig().Enabled.GetValue())
     {
-        promoText->SetText(getModConfig().DifferentText.GetValue() ? getText(rankedStatus) : getText(RankedStatus::Ranked));
-        promoTextBg->set_color(getModConfig().DifferentText.GetValue() ? getColor(rankedStatus) : getColor(RankedStatus::Ranked));
+        promoText->SetText(getModConfig().DifferentText.GetValue() ? texts[rankedStatus] : texts[RankedStatus::Ranked]);
+        promoTextBg->set_color(getModConfig().DifferentColor.GetValue() ? colors[rankedStatus] : colors[RankedStatus::Ranked]);
     }
     // fix issues with reused cells
     else
     {
-        promoText->SetText(getText(RankedStatus::None));
-        promoTextBg->set_color(getColor(RankedStatus::None));
+        promoText->SetText(texts[RankedStatus::None]);
+        promoTextBg->set_color(colors[RankedStatus::None]);
     }
 }
 
@@ -129,6 +117,8 @@ extern "C" void setup(ModInfo &info)
     info.version = VERSION;
     modInfo = info;
 
+    getModConfig().Init(modInfo);
+
     getLogger().info("Completed setup!");
 }
 
@@ -136,8 +126,6 @@ extern "C" void setup(ModInfo &info)
 extern "C" void load()
 {
     il2cpp_functions::Init();
-
-    getModConfig().Init(modInfo);
 
     songDetails = SongDetailsCache::SongDetails::Init(0).get();
 
