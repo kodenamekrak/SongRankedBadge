@@ -5,7 +5,7 @@
     "info": {
       "name": "SongRankedBadge",
       "id": "songrankedbadge",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "url": null,
       "additionalData": {
         "overrideSoName": "libsongrankedbadge.so",

@@ -70,6 +70,8 @@ RankedStatus GetRankedStatus(std::string hash)
 MAKE_HOOK_MATCH(LevelListTableCell_SetDataFromLevelAsync, &GlobalNamespace::LevelListTableCell::SetDataFromLevelAsync, void, GlobalNamespace::LevelListTableCell* self, GlobalNamespace::IPreviewBeatmapLevel* level, bool isFavorite, bool isPromoted, bool isUpdated)
 {
     LevelListTableCell_SetDataFromLevelAsync(self, level, isFavorite, isPromoted, isUpdated);
+    if(!songDetails->songs.get_isDataAvailable())
+        return;
 
 
     RankedStatus rankedStatus = RankedStatus::None;
