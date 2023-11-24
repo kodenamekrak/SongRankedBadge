@@ -12,6 +12,7 @@
         "cmake": true
       }
     },
+    "workspace": null,
     "dependencies": [
       {
         "id": "beatsaber-hook",
@@ -48,8 +49,7 @@
         "versionRange": "^0.3.1",
         "additionalData": {}
       }
-    ],
-    "workspace": null
+    ]
   },
   "restoredDependencies": [
     {
