@@ -2,7 +2,7 @@
 #include "SettingsViewController.hpp"
 #include "ModConfig.hpp"
 
-#include "questui/shared/BeatSaberUI.hpp"
+#include "bsml/shared/BSML-Lite.hpp"
 
 DEFINE_TYPE(SongRankedBadge, SettingsViewController);
 
@@ -11,7 +11,7 @@ void SongRankedBadge::SettingsViewController::DidActivate(bool firstActivation, 
     if(!firstActivation)
         return;
 
-    auto container = QuestUI::BeatSaberUI::CreateScrollableSettingsContainer(get_transform())->get_transform();
+    auto container = BSML::Lite::CreateScrollableSettingsContainer(get_transform())->get_transform();
 
     AddConfigValueToggle(container, getModConfig().Enabled);
     AddConfigValueToggle(container, getModConfig().DifferentColor);

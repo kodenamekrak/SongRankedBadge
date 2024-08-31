@@ -1,4 +1,5 @@
 {
+  "version": "0.1.0",
   "sharedDir": "shared",
   "dependenciesDir": "extern",
   "info": {
@@ -11,42 +12,83 @@
       "cmake": true
     }
   },
+  "workspace": {
+    "scripts": {
+      "a2l": [
+        "pwsh ./scripts/addr2line.ps1 $0"
+      ],
+      "build": [
+        "pwsh ./scripts/build.ps1 --release"
+      ],
+      "clean": [
+        "pwsh ./scripts/build.ps1 -clean"
+      ],
+      "copy": [
+        "pwsh ./scripts/copy.ps1"
+      ],
+      "debug": [
+        "pwsh ./scripts/build.ps1"
+      ],
+      "format": [
+        "find ./src -name *.cpp -exec clang-format -i {} ;"
+      ],
+      "restart": [
+        "pwsh ./scripts/restart-game.ps1"
+      ],
+      "stack": [
+        "pwsh ./scripts/ndk-stack.ps1"
+      ],
+      "tomb": [
+        "pwsh ./scripts/pull-tombstone.ps1",
+        "code RecentCrash.log"
+      ]
+    },
+    "qmodIncludeDirs": ["./build", "./extern/libs"],
+    "qmodIncludeFiles": [],
+    "qmodOutput": "SongRankedBadge"
+  },
   "dependencies": [
     {
       "id": "beatsaber-hook",
-      "versionRange": "^3.14.0",
-      "additionalData": {}
-    },
-    {
-      "id": "modloader",
-      "versionRange": "=1.2.3",
-      "additionalData": {}
-    },
-    {
-      "id": "codegen",
-      "versionRange": "^0.33.0",
+      "versionRange": "^5.1.0",
       "additionalData": {}
     },
     {
       "id": "custom-types",
-      "versionRange": "^0.15.24",
+      "versionRange": "^0.17.0",
       "additionalData": {}
     },
     {
       "id": "config-utils",
-      "versionRange": "^1.0.2",
-      "additionalData": {}
-    },
-    {
-      "id": "questui",
-      "versionRange": "^0.17.12",
+      "versionRange": "^1.4.2",
       "additionalData": {}
     },
     {
       "id": "song-details",
-      "versionRange": "^0.3.1",
+      "versionRange": "^0.3.4",
+      "additionalData": {}
+    },
+    {
+      "id": "scotland2",
+      "versionRange": "^0.1.4",
+      "additionalData": {
+        "includeQmod": false
+      }
+    },
+    {
+      "id": "bsml",
+      "versionRange": "^0.4.40",
+      "additionalData": {}
+    },
+    {
+      "id": "bs-cordl",
+      "versionRange": "^3700.0.0",
+      "additionalData": {}
+    },
+    {
+      "id": "paper",
+      "versionRange": "^3.6.4",
       "additionalData": {}
     }
-  ],
-  "workspace": null
+  ]
 }

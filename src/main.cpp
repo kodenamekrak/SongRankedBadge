@@ -2,9 +2,10 @@
 #include "ModConfig.hpp"
 #include "SettingsViewController.hpp"
 
-#include "questui/shared/QuestUI.hpp"
+#include "bsml/shared/BSML.hpp"
 
 #include "GlobalNamespace/LevelListTableCell.hpp"
+#include "GlobalNamespace/BeatmapLevel.hpp"
 
 #include "UnityEngine/Color.hpp"
 #include "UnityEngine/GameObject.hpp"
@@ -14,11 +15,15 @@
 
 #include "TMPro/TMP_Text.hpp"
 
-#include "Polyglot/LocalizedTextMeshProUGUI.hpp"
+#include "BGLib/Polyglot/LocalizedTextMeshProUGUI.hpp"
 
 #include "song-details/shared/SongDetails.hpp"
 
-static ModInfo modInfo;
+#include "scotland2/shared/loader.hpp"
+
+static modloader::ModInfo modInfo{MOD_ID, VERSION, 0};
+
+static constexpr auto Logger = Paper::ConstLoggerContext("SongRankedBadge");
 
 SongDetailsCache::SongDetails* songDetails;
 
@@ -30,9 +35,9 @@ enum class RankedStatus {
 };
 
 UnityEngine::Color unranked(0.87450980392f, 0.0862745098f, 0.43529411764f, 1),
-ranked = unranked,
-beatleaderRanked(0.54509803921f, 0.38823529411f, 0.73333333333f, 1),
-scoresaberRanked(0.9294117647f, 0.8f, 0.03137254901f, 1);
+                   ranked = unranked,
+                   beatleaderRanked(0.54509803921f, 0.38823529411f, 0.73333333333f, 1),
+                   scoresaberRanked(0.9294117647f, 0.8f, 0.03137254901f, 1);
 
 std::map<RankedStatus, UnityEngine::Color> colors = {
     {RankedStatus::None, unranked},
@@ -48,7 +53,7 @@ std::map<RankedStatus, std::string> texts = {
     {RankedStatus::Scoresaber, "SS Ranked"}
 };
 
-RankedStatus GetRankedStatus(std::string hash)
+RankedStatus GetRankedStatus(std::string_view hash)
 {
     const SongDetailsCache::Song* song;
     if(!songDetails->songs.FindByHash(hash, song))
@@ -67,7 +72,7 @@ RankedStatus GetRankedStatus(std::string hash)
     return RankedStatus::None;
 }
 
-MAKE_HOOK_MATCH(LevelListTableCell_SetDataFromLevelAsync, &GlobalNamespace::LevelListTableCell::SetDataFromLevelAsync, void, GlobalNamespace::LevelListTableCell* self, GlobalNamespace::IPreviewBeatmapLevel* level, bool isFavorite, bool isPromoted, bool isUpdated)
+MAKE_HOOK_MATCH(LevelListTableCell_SetDataFromLevelAsync, &GlobalNamespace::LevelListTableCell::SetDataFromLevelAsync, void, GlobalNamespace::LevelListTableCell* self, GlobalNamespace::BeatmapLevel* level, bool isFavorite, bool isPromoted, bool isUpdated)
 {
     LevelListTableCell_SetDataFromLevelAsync(self, level, isFavorite, isPromoted, isUpdated);
     if(!songDetails->songs.get_isDataAvailable())
@@ -75,66 +80,59 @@ MAKE_HOOK_MATCH(LevelListTableCell_SetDataFromLevelAsync, &GlobalNamespace::Leve
 
 
     RankedStatus rankedStatus = RankedStatus::None;
-
-    if(level->get_levelID()->StartsWith("custom_level"))
+    if(level->levelID->StartsWith("custom_level"))
     {
-        StringW hash = level->get_levelID()->Substring(13);
+        StringW hash = level->levelID->Substring(13);
         rankedStatus = GetRankedStatus(static_cast<std::string>(hash));
     }
 
     bool isRanked = rankedStatus != RankedStatus::None;
     
-    self->promoBadgeGo->SetActive((isRanked && getModConfig().Enabled.GetValue()) || isPromoted);
+    self->_promoBadgeGo->SetActive((isRanked && getModConfig().Enabled.GetValue()) || isPromoted);
 
-    auto promoTextGo = self->promoBadgeGo->get_transform()->Find("PromoText")->get_gameObject();
-    auto localization = promoTextGo->GetComponent<Polyglot::LocalizedTextMeshProUGUI*>();
+    auto promoTextGo = self->_promoBadgeGo->get_transform()->Find("PromoText")->get_gameObject();
+    auto localization = promoTextGo->GetComponent<BGLib::Polyglot::LocalizedTextMeshProUGUI*>();
     localization->set_enabled(!isRanked);
 
     auto promoText = promoTextGo->GetComponent<TMPro::TMP_Text*>();
-    auto promoTextBg = self->promoBadgeGo->GetComponent<HMUI::ImageView*>();
+    auto promoTextBg = self->_promoBadgeGo->GetComponent<HMUI::ImageView*>();
 
     if(isRanked && getModConfig().Enabled.GetValue())
     {
-        promoText->SetText(getModConfig().DifferentText.GetValue() ? texts[rankedStatus] : texts[RankedStatus::Ranked]);
-        promoTextBg->set_color(getModConfig().DifferentColor.GetValue() ? colors[rankedStatus] : colors[RankedStatus::Ranked]);
+        promoText->text = getModConfig().DifferentText.GetValue() ? texts[rankedStatus] : texts[RankedStatus::Ranked];
+        promoTextBg->color = getModConfig().DifferentColor.GetValue() ? colors[rankedStatus] : colors[RankedStatus::Ranked];
     }
     // fix issues with reused cells
     else
     {
-        promoText->SetText(texts[RankedStatus::None]);
-        promoTextBg->set_color(colors[RankedStatus::None]);
+        promoText->text = texts[RankedStatus::None];
+        promoTextBg->color = colors[RankedStatus::None];
     }
 }
 
-Logger &getLogger()
-{
-    static Logger *logger = new Logger(modInfo);
-    return *logger;
-}
-
 // Called at the early stages of game loading
-extern "C" void setup(ModInfo &info)
+SONGRANKEDBADGE_EXPORT void setup(CModInfo* &info)
 {
-    info.id = MOD_ID;
-    info.version = VERSION;
-    modInfo = info;
+    *info = modInfo.to_c();
 
     getModConfig().Init(modInfo);
 
-    getLogger().info("Completed setup!");
+    Logger.info("Completed setup!");
 }
 
 // Called later on in the game loading - a good time to install function hooks
-extern "C" void load()
+SONGRANKEDBADGE_EXPORT void late_load()
 {
     il2cpp_functions::Init();
 
     songDetails = SongDetailsCache::SongDetails::Init(0).get();
 
-    QuestUI::Init();
-    QuestUI::Register::RegisterAllModSettingsViewController<SongRankedBadge::SettingsViewController*>(modInfo);
+    custom_types::Register::AutoRegister();
 
-    getLogger().info("Installing hooks...");
-    INSTALL_HOOK(getLogger(), LevelListTableCell_SetDataFromLevelAsync);
-    getLogger().info("Installed all hooks!");
+    BSML::Init();
+    BSML::Register::RegisterSettingsMenu<SongRankedBadge::SettingsViewController*>("SongRankedBadge");
+
+    Logger.info("Installing hooks...");
+    INSTALL_HOOK(Logger, LevelListTableCell_SetDataFromLevelAsync);
+    Logger.info("Installed all hooks!");
 }

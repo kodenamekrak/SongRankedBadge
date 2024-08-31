@@ -9,7 +9,7 @@
   "version": "${version}",
   "packageId": "com.beatgames.beatsaber",
   "packageVersion": "1.28.0_4124311467",
-  "description": "",
+  "description": "Shows song ranked status on the level list",
   "dependencies": [],
   "modFiles": [],
   "libraryFiles": [],
